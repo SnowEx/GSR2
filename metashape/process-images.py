@@ -27,7 +27,7 @@ import Metashape
 
 class Accuracy:
     CAMERA_LOCATION = Metashape.Vector([0.5, 0.5, 0.5])  # in meter
-    CAMERA_ROTATION = Metashape.Vector([0.5, 0.5, 0.5])  # in meter
+    CAMERA_ROTATION = Metashape.Vector([5, 5, 5])  # in degrees
     MARKERS = Metashape.Vector([0.05, 0.05, 0.05])  # in meter
     MARKER_PROJECTION = 1.0  # in pixel
     SCALEBAR = 0.03  # in meter
@@ -278,6 +278,8 @@ class ImageProcessor:
     def build_dense_cloud(self, downscale: int) -> None:
         """
         Build the depth maps and dense point cloud.
+
+        :param downscale: Depth Map quality
         """
         self._project.chunk.buildDepthMaps(
             downscale=downscale,
@@ -290,10 +292,10 @@ class ImageProcessor:
     def build_point_cloud(self, options: argparse.Namespace) -> None:
         """
         Wrapper function to run:
+            * Camera optimization
+            * Build sparse cloud
+            * Build dense cloud
 
-        * Camera optimization
-        * Build sparse cloud
-        * Build dense cloud
         :param options: Quality for dense cloud
                         (See :py:class:`DepthMapQuality`)
         """
