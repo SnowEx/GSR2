@@ -137,9 +137,9 @@ class ImageProcessor:
             project.save(path=self.project_path.as_posix())
 
             self._project = project
-            self.setup_camera()
             self.load_images(image_folder, image_type)
             self.detect_and_scale_markers()
+            self.setup_camera()
             project.save()
 
         return project
