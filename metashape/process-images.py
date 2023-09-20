@@ -67,8 +67,10 @@ class ImageProcessor:
         ']'
     )
 
-    KEYPOINT_LIMIT = 60000
-    TIEPOINT_LIMIT = 4000
+    # Use a high keypoint limit and filter through the gradual selection in
+    # a second step (See :py:meth:`.filter_sparse_cloud`)
+    KEYPOINT_LIMIT = 200000
+    TIEPOINT_LIMIT = 0
 
     def __init__(self, options: argparse.Namespace):
         self._base_path = pathlib.Path(options.base_path)
