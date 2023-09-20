@@ -54,6 +54,7 @@ class DepthMapQuality:
 
 class ImageProcessor:
     PROJECT_TYPE = '.psx'
+    EXPORT_LAZ = '.laz'
 
     IMAGE_CHUNK_LABEL = 'Snowpit'
     IMAGE_FOLDER = 'images'
@@ -324,6 +325,15 @@ class ImageProcessor:
         self.filter_sparse_cloud()
         self.build_dense_cloud(options.dense_cloud_quality)
 
+    def export(self) -> None:
+        """
+        Export a project point cloud as .laz file
+        """
+        self._project.chunk.exportPoints(
+            self._base_path.joinpath(self._project_name + self.EXPORT_LAZ),
+            format=Metashape.PointsFormat.PointsFormatLAZ
+        )
+
 
 def argument_parser():
     parser = argparse.ArgumentParser(
@@ -364,6 +374,11 @@ def argument_parser():
              f" High    -> {str(DepthMapQuality.HIGH)}\n"
              f" Medium  -> {str(DepthMapQuality.MEDIUM)}"
     )
+    parser.add_argument(
+        '-exp', '--export',
+        action="store_true",
+        help="Export the result in a .laz file"
+    )
 
     return parser
 
@@ -371,4 +386,7 @@ def argument_parser():
 if __name__ == '__main__':
     arguments = argument_parser().parse_args()
     image_processor = ImageProcessor(arguments)
-    image_processor.build_point_cloud(arguments)
+    if arguments.export:
+        image_processor.export()
+    else:
+        image_processor.build_point_cloud(arguments)
