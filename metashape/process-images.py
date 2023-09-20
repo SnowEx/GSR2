@@ -60,6 +60,7 @@ class ImageProcessor:
     IMAGE_FOLDER = 'images'
     IMAGE_FOLDER_GLOB = '**/*'
     SOURCE_IMAGE_TYPE = '.jpg'
+
     MARKER_STRING = Template('target ${id}')
 
     LOCAL_CRS = Metashape.CoordinateSystem(
@@ -189,6 +190,17 @@ class ImageProcessor:
 
         self._project.chunk.addPhotos(images)
 
+    @staticmethod
+    def set_xyz_origin(markers: list) -> None:
+        """
+        Set detected marker #3 as the XYZ origin
+
+        :param markers: list - All detected markers
+        """
+        for marker in markers:
+            if marker.label == ImageProcessor.MARKER_STRING.substitute(id=3):
+                markers[2].reference.location = Metashape.Vector([0, 0, 0])
+
     def add_scalebars(self, markers: list, distance: float) -> None:
         """
         Add scale bar to marker pairs that were successfully detected.
@@ -234,6 +246,7 @@ class ImageProcessor:
         else:
             print(f"** Found {marker_count} markers")
 
+        self.set_xyz_origin(markers)
         self.add_scalebars(markers, distance)
 
     def align_images(
