@@ -343,8 +343,10 @@ class ImageProcessor:
         Export a project point cloud as .laz file
         """
         self._project.chunk.exportPoints(
-            self._base_path.joinpath(self._project_name + self.EXPORT_LAZ),
-            format=Metashape.PointsFormat.PointsFormatLAZ
+            self._base_path.joinpath(
+                self._project_name + self.EXPORT_LAZ
+            ).as_posix(),
+            format=Metashape.PointsFormatLAZ
         )
 
 
