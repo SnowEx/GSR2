@@ -21,6 +21,7 @@ import argparse
 import glob
 import pathlib
 import sys
+from string import Template
 
 import Metashape
 
@@ -58,6 +59,7 @@ class ImageProcessor:
     IMAGE_FOLDER = 'images'
     IMAGE_FOLDER_GLOB = '**/*'
     SOURCE_IMAGE_TYPE = '.jpg'
+    MARKER_STRING = Template('target ${id}')
 
     LOCAL_CRS = Metashape.CoordinateSystem(
         'LOCAL_CS['
@@ -186,6 +188,28 @@ class ImageProcessor:
 
         self._project.chunk.addPhotos(images)
 
+    def add_scalebars(self, markers: list, distance: float) -> None:
+        """
+        Add scale bar to marker pairs that were successfully detected.
+
+        :param markers: list - All detected markers
+        :param distance: float - Distance between the two markers
+        """
+        # Transform to check for detection
+        marker_dict = {marker.label: marker for marker in markers}
+
+        for marker_start in range(1, 6, 2):
+            marker_1 = self.MARKER_STRING.substitute(id=marker_start)
+            marker_2 = self.MARKER_STRING.substitute(id=marker_start + 1)
+
+            if  marker_1 in marker_dict.keys() and \
+                    marker_2 in marker_dict.keys():
+                scale_bar = self._project.chunk.addScalebar(
+                    marker_dict[marker_1], marker_dict[marker_2]
+                )
+                scale_bar.reference.accuracy = Accuracy.SCALEBAR
+                scale_bar.reference.distance = distance
+
     def detect_and_scale_markers(
         self, marker_count: int = 6, distance: float = 0.35,
     ) -> None:
@@ -203,18 +227,13 @@ class ImageProcessor:
 
         markers = self._project.chunk.markers
 
+        # User feedback
         if len(markers) < marker_count:
-            print(' ** ERROR ** Not all markers detected in scene')
-            self.save_and_exit()
+            print('** WARNING ** Not all markers detected in scene')
         else:
             print(f"** Found {marker_count} markers")
 
-        for pair_start in range(0, len(markers), 2):
-            scale_bar = self._project.chunk.addScalebar(
-                markers[pair_start], markers[pair_start + 1]
-            )
-            scale_bar.reference.accuracy = Accuracy.SCALEBAR
-            scale_bar.reference.distance = distance
+        self.add_scalebars(markers, distance)
 
     def align_images(
         self, preselection_mode=Metashape.ReferencePreselectionMode
