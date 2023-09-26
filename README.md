@@ -10,6 +10,9 @@ soils using roughness measurements derived from photogrammetry,
 International Journal of Digital Earth, 
 DOI: [10.1080/17538947.2020.1836049](https://doi.org/10.1080/17538947.2020.1836049)
 
+## Local point cloud visualization
+See the [entwine](entwine.md) instructions on how to visualize points clouds 
+with a cloud optimized data format on your local computer.
 
 ## Local Development
 Below the instructions to develop the Metashape automation locally. This does
