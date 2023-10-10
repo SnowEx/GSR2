@@ -320,7 +320,9 @@ class ImageProcessor:
             downscale=downscale,
             filter_mode=Metashape.MildFiltering,
         )
-        self._project.chunk.buildDenseCloud()
+        self._project.chunk.buildDenseCloud(
+            point_confidence=True,
+        )
 
         self._project.save()
 
