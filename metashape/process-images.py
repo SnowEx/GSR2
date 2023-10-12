@@ -38,6 +38,8 @@ class Filter:
     RECONSTRUCTION_UNCERTAINTY = 10.0  # no units
     REPROJECTION_ERROR = 0.3  # in pixels
     PROJECTION_ACCURACY = 5.0  # in pixels
+    DEPTH_MAP_MINIMUM = 1  # Count number
+    DENSE_CLOUD_POINT_SPACING = 0.00_025  # in meters
 
 
 class ImageMatching:
@@ -70,6 +72,9 @@ class ImageProcessor:
         'UNIT["metre",1,AUTHORITY["EPSG","9001"]]'
         ']'
     )
+
+    # From https://www.agisoft.com/forum/index.php?topic=12114.0
+    ALL_VISIBLE_POINTS = list(range(128))
 
     # Use a high keypoint limit and filter through the gradual selection in
     # a second step (See :py:meth:`.filter_sparse_cloud`)
@@ -323,6 +328,26 @@ class ImageProcessor:
         self._project.chunk.buildDenseCloud(
             point_confidence=True,
         )
+
+        self._project.save()
+
+    def filter_dense_cloud(self) -> None:
+        """
+        Two step filter:
+          * Remove points that have only one depth map
+          * Decimate the point cloud to four points per millimeter
+        """
+        # Remove points with one depth map
+        point_cloud = self._project.chunk.dense_cloud
+        point_cloud.setConfidenceFilter(0, Filter.DEPTH_MAP_MINIMUM)
+        point_cloud.removePoints(self.ALL_VISIBLE_POINTS)
+        point_cloud.resetFilters()
+
+        # Decimate to four points per millimeter to speed up analysis
+        task = Metashape.Tasks.FilterDenseCloud()
+        task.point_spacing = Filter.DENSE_CLOUD_POINT_SPACING
+        task.asset = point_cloud.key
+        task.apply(self._project.chunk)
 
         self._project.save()
 
