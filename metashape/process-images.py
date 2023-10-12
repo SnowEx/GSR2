@@ -39,7 +39,7 @@ class Filter:
     REPROJECTION_ERROR = 0.3  # in pixels
     PROJECTION_ACCURACY = 5.0  # in pixels
     DEPTH_MAP_MINIMUM = 1  # Count number
-    DENSE_CLOUD_POINT_SPACING = 0.00_025  # in meters
+    DENSE_CLOUD_POINT_SPACING = 0.00025  # in meters
 
 
 class ImageMatching:
@@ -59,7 +59,6 @@ class ImageProcessor:
     EXPORT_LAZ = '.laz'
 
     IMAGE_CHUNK_LABEL = 'Snowpit'
-    IMAGE_FOLDER = 'images'
     IMAGE_FOLDER_GLOB = '**/*'
     SOURCE_IMAGE_TYPE = '.jpg'
 
@@ -82,8 +81,9 @@ class ImageProcessor:
     TIEPOINT_LIMIT = 20_000
 
     def __init__(self, options: argparse.Namespace):
-        self._base_path = pathlib.Path(options.base_path)
         self._project_name = options.project_name
+        # Location for Metashape outputs
+        self._project_path = pathlib.Path(options.output_path)
 
         self.setup_application()
 
@@ -100,7 +100,7 @@ class ImageProcessor:
         """
         Base path where project will be saved or loaded from.
         """
-        return self._base_path.joinpath(self.project_name)
+        return self._project_path.joinpath(self.project_name)
 
     def save_and_exit(self):
         """
@@ -125,7 +125,8 @@ class ImageProcessor:
     def open_or_create_new_project(self, image_folder: str, image_type: str) \
             -> Metashape.Document:
         """
-        Create or open the project under initialized base_path.
+        Create or open the project under given project path from script
+        arguments.
 
         Executes the following when a new project is created:
 
@@ -133,7 +134,7 @@ class ImageProcessor:
         * Add the images (See :py:meth:`.load_images`)
         * Detect markers in images (See :py:meth:`.detect_and_scale_markers`)
 
-        :param image_folder: Name of the image folder
+        :param image_folder: Image folder from script arguments
         :param image_type: Type of images to load
         :return: The opened Metashape project
         """
@@ -168,15 +169,15 @@ class ImageProcessor:
 
     def load_images(self, folder: str, image_type: str) -> None:
         """
-        Find all images recursively under the initialized base_path folder.
+        Find all images recursively under the given folder.
         Only images with the specified file ending will be found.
         Default image file ending is defined with
         :py:const:`ImageProcessor.SOURCE_IMAGE_TYPE.`
 
-        :param folder: relative path of the image folder location
+        :param folder: Absolute path of the image folder location
         :param image_type: Image types to look for in the folder
         """
-        image_folder = self._base_path.joinpath(folder)
+        image_folder = pathlib.Path(folder)
 
         # Not using Path.rglob since we the result as a list of strings and
         # using Path will return a list of Path objects.
@@ -370,7 +371,7 @@ class ImageProcessor:
         Export a project point cloud as .laz file
         """
         self._project.chunk.exportPoints(
-            self._base_path.joinpath(
+            self._project_path.joinpath(
                 self._project_name + self.EXPORT_LAZ
             ).as_posix(),
             format=Metashape.PointsFormatLAZ
@@ -382,18 +383,18 @@ def argument_parser():
         "Process snow pit ground surface imagery"
     )
     parser.add_argument(
-        '-bp', '--base-path',
-        required=True,
-        help='Root directory of the project.',
-    )
-    parser.add_argument(
         '-pn', '--project-name',
         required=True,
         help='Name of project.',
     )
     parser.add_argument(
+        '-op', '--output-path',
+        required=True,
+        help='Output directory for the Metashape project.',
+    )
+    parser.add_argument(
         '-if', '--image-folder',
-        default=ImageProcessor.IMAGE_FOLDER,
+        required=True,
         help='Location of images relative to base-path.',
     )
     parser.add_argument(
