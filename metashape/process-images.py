@@ -220,7 +220,7 @@ class ImageProcessor:
             marker_1 = self.MARKER_STRING.substitute(id=marker_start)
             marker_2 = self.MARKER_STRING.substitute(id=marker_start + 1)
 
-            if  marker_1 in marker_dict.keys() and \
+            if marker_1 in marker_dict.keys() and \
                     marker_2 in marker_dict.keys():
                 scale_bar = self._project.chunk.addScalebar(
                     marker_dict[marker_1], marker_dict[marker_2]
