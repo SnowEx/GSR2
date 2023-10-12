@@ -365,6 +365,7 @@ class ImageProcessor:
         self.align_images(Metashape.ReferencePreselectionSequential)
         self.filter_sparse_cloud()
         self.build_dense_cloud(options.dense_cloud_quality)
+        self.filter_dense_cloud()
 
     def export(self) -> None:
         """
