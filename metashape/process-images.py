@@ -200,6 +200,8 @@ class ImageProcessor:
     def set_xyz_origin(markers: list) -> None:
         """
         Set detected marker #3 as the XYZ origin
+        20231015 - Currently unused. Trial runs showed no improvement for model
+                   orientation.
 
         :param markers: list - All detected markers
         """
@@ -252,7 +254,6 @@ class ImageProcessor:
         else:
             print(f"** Found {marker_count} markers")
 
-        self.set_xyz_origin(markers)
         self.add_scalebars(markers, distance)
 
     def align_images(
