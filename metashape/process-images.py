@@ -25,33 +25,10 @@ from string import Template
 
 import Metashape
 
-
-class Accuracy:
-    CAMERA_LOCATION = Metashape.Vector([0.5, 0.5, 0.5])  # in meter
-    CAMERA_ROTATION = Metashape.Vector([5, 5, 5])  # in degrees
-    MARKERS = Metashape.Vector([0.03, 0.03, 0.03])  # in meter
-    MARKER_PROJECTION = 1.0  # in pixel
-    SCALEBAR = 0.03  # in meter
-
-
-class Filter:
-    RECONSTRUCTION_UNCERTAINTY = 10.0  # no units
-    REPROJECTION_ERROR = 0.3  # in pixels
-    PROJECTION_ACCURACY = 5.0  # in pixels
-    DEPTH_MAP_MINIMUM = 1  # Count number
-    DENSE_CLOUD_POINT_SPACING = 0.00025  # in meters
-
-
-class ImageMatching:
-    HIGHEST = 0
-    HIGH = 1
-    MEDIUM = 2
-
-
-class DepthMapQuality:
-    ULTRA = 1
-    HIGH = 2
-    MEDIUM = 4
+from accuracy import Accuracy
+from depth_map_quality import DepthMapQuality
+from filter import Filter
+from image_matching import ImageMatching
 
 
 class ImageProcessor:
