@@ -18,6 +18,7 @@
 #
 
 import argparse
+import csv
 import glob
 import pathlib
 import sys
@@ -65,7 +66,7 @@ class ImageProcessor:
         self.setup_application()
 
         self._project = self.open_or_create_new_project(
-            options.image_folder, options.image_type
+            options.image_folder, options.image_type, options.marker_file
         )
 
     @property
@@ -99,8 +100,9 @@ class ImageProcessor:
         app.gpu_mask = mask
         app.cpu_enable = False
 
-    def open_or_create_new_project(self, image_folder: str, image_type: str) \
-            -> Metashape.Document:
+    def open_or_create_new_project(
+        self, image_folder: str, image_type: str, marker_file: str,
+    ) -> Metashape.Document:
         """
         Create or open the project under given project path from script
         arguments.
@@ -113,6 +115,7 @@ class ImageProcessor:
 
         :param image_folder: Image folder from script arguments
         :param image_type: Type of images to load
+        :param marker_file: Path to CSV marker file
         :return: The opened Metashape project
         """
         project = Metashape.Document()
@@ -127,7 +130,7 @@ class ImageProcessor:
 
             self._project = project
             self.load_images(image_folder, image_type)
-            self.detect_and_scale_markers()
+            self.detect_and_scale_markers(marker_file)
             self.setup_camera()
             project.save()
 
@@ -186,19 +189,19 @@ class ImageProcessor:
             if marker.label == ImageProcessor.MARKER_STRING.substitute(id=3):
                 markers[2].reference.location = Metashape.Vector([0, 0, 0])
 
-    def add_scalebars(self, markers: list, distance: float) -> None:
+    def add_scalebars(self, markers: list, marker_list: list) -> None:
         """
         Add scale bar to marker pairs that were successfully detected.
 
         :param markers: list - All detected markers
-        :param distance: float - Distance between the two markers
+        :param marker_list: list - Parsed marker list from user csv
         """
         # Transform to check for detection
         marker_dict = {marker.label: marker for marker in markers}
 
-        for marker_start in range(1, 6, 2):
-            marker_1 = self.MARKER_STRING.substitute(id=marker_start)
-            marker_2 = self.MARKER_STRING.substitute(id=marker_start + 1)
+        for marker_pair in marker_list:
+            marker_1 = self.MARKER_STRING.substitute(id=marker_pair[0])
+            marker_2 = self.MARKER_STRING.substitute(id=marker_pair[1])
 
             if marker_1 in marker_dict.keys() and \
                     marker_2 in marker_dict.keys():
@@ -206,32 +209,33 @@ class ImageProcessor:
                     marker_dict[marker_1], marker_dict[marker_2]
                 )
                 scale_bar.reference.accuracy = Accuracy.SCALEBAR
-                scale_bar.reference.distance = distance
+                scale_bar.reference.distance = marker_pair[2]
+            else:
+                print('** WARNING ** Marker pair')
+                print(f'   {marker_1} to {marker_2}')
+                print('    NOT found in images')
 
-    def detect_and_scale_markers(
-        self, marker_count: int = 6, distance: float = 0.35,
-    ) -> None:
+    def detect_and_scale_markers(self, marker_file: str) -> None:
         """
         Find the specified markers placed in scene and add scalebars.
         Each pair is expected to have a fixed distance between them.
 
-        Will stop execution and save the project if not all markers were
-        successfully found.
+        Expected format in CSV file is:
+            marker_ID_from, marker_ID_to, marker_distance
 
-        :param marker_count: Number of expected markers in all images
-        :param distance: Distance between markers in meter
+        Example: 1,2,0.33
+
+        :param marker_file: Path to CSV marker file
         """
         self._project.chunk.detectMarkers()
 
         markers = self._project.chunk.markers
 
-        # User feedback
-        if len(markers) < marker_count:
-            print('** WARNING ** Not all markers detected in scene')
-        else:
-            print(f"** Found {marker_count} markers")
+        # Read marker metadata from user given csv
+        with open(marker_file, 'r', newline='') as csvfile:
+            marker_list = list(csv.reader(csvfile, delimiter=','))
 
-        self.add_scalebars(markers, distance)
+        self.add_scalebars(markers, marker_list)
 
     def align_images(
         self, preselection_mode=Metashape.ReferencePreselectionMode
@@ -380,6 +384,11 @@ def argument_parser():
         '-it', '--image-type',
         default=ImageProcessor.SOURCE_IMAGE_TYPE,
         help=f'Type of images - default to {ImageProcessor.SOURCE_IMAGE_TYPE}',
+    )
+    parser.add_argument(
+        '-mf', '--marker-file',
+        required=True,
+        help='Path to CSV file with marker distances',
     )
     parser.add_argument(
         '-dcq', '--dense-cloud-quality',
