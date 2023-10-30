@@ -227,7 +227,7 @@ class ImageProcessor:
 
         :param marker_file: Path to CSV marker file
         """
-        self._project.chunk.detectMarkers()
+        self._project.chunk.detectMarkers(tolerance=25)
 
         markers = self._project.chunk.markers
 
