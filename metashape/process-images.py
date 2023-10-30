@@ -209,7 +209,7 @@ class ImageProcessor:
                     marker_dict[marker_1], marker_dict[marker_2]
                 )
                 scale_bar.reference.accuracy = Accuracy.SCALEBAR
-                scale_bar.reference.distance = marker_pair[2]
+                scale_bar.reference.distance = float(marker_pair[2])
             else:
                 print('** WARNING ** Marker pair')
                 print(f'   {marker_1} to {marker_2}')
