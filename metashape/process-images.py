@@ -58,6 +58,9 @@ class ImageProcessor:
     KEYPOINT_LIMIT = 100_000
     TIEPOINT_LIMIT = 10_000
 
+    # Percentage threshold for sparse point cloud filter
+    FIFTY_PERCENT = 50
+
     def __init__(self, options: argparse.Namespace):
         self._project_name = options.project_name
         # Location for Metashape outputs
@@ -259,17 +262,75 @@ class ImageProcessor:
         self._project.chunk.optimizeCameras()
         self._project.save()
 
+    def count_sparse_points(
+        self, filtered: bool = True
+    ) -> int:
+        """
+        Count points in the sparse point cloud.
+
+        :param filtered: Boolean - Whether to only count selected points
+        :return: Integer - Number of points
+        """
+        sparse_points = self._project.chunk.point_cloud.points
+        return len(
+            [
+                True for point in sparse_points
+                if point.valid is True and point.selected is filtered]
+        )
+
+    def threshold_for_percent(
+        self,
+        point_filter: Metashape.PointCloud.Filter,
+        threshold: float,
+        max_percent: int,
+    ) -> float:
+        """
+        Calculate percentage of points selected via the filter and adjust the
+        filter threshold value to stay below given maximum percent. This method
+        incrementally increases the threshold value by 0.25.
+
+        :param point_filter: Instance of Metashape.PointCloud.Filter
+        :param threshold: Threshold value for the given filter
+        :param max_percent: int - Percent value to stay below
+
+        :return: Filter threshold value to match needed maximum percentage
+        """
+        sparse_points = self.count_sparse_points(False)
+
+        point_filter.selectPoints(threshold)
+        selected_points = self.count_sparse_points()
+        percent_selected = round(selected_points / sparse_points)
+
+        while percent_selected > max_percent:
+            threshold += 0.25
+            point_filter.selectPoints(threshold)
+
+            selected_points = self.count_sparse_points()
+            percent_selected = round(selected_points / sparse_points)
+
+        return threshold
+
     def remove_by_criteria(
-        self, criteria: Metashape.PointCloud.Filter, threshold: float
+        self, criteria: Metashape.PointCloud.Filter,
+        threshold: float,
+        max_removed: int = 0,
     ) -> None:
         """
         Wrapper function to execute a Metashape point cloud filter.
 
         :param criteria: Child class from Metashape.PointCloud.Filter
         :param threshold: Threshold value for the given criteria
+        :param max_removed: Threshold for maximum percent of points removed
+                            with this filter. Default: 0 (no maximum)
         """
         point_cloud_filter = Metashape.PointCloud.Filter()
         point_cloud_filter.init(self._project.chunk, criterion=criteria)
+
+        if max_removed > 0:
+            threshold = self.threshold_for_percent(
+                point_cloud_filter, threshold, max_removed
+            )
+
         point_cloud_filter.removePoints(threshold)
 
     def filter_sparse_cloud(self) -> None:
@@ -282,13 +343,9 @@ class ImageProcessor:
         Inspired by: https://code.usgs.gov/pcmsc/AgisoftAlignmentErrorReduction
         """
         self.remove_by_criteria(
-            Metashape.PointCloud.Filter.ReprojectionError,
-            Filter.REPROJECTION_ERROR,
-        )
-        self._project.chunk.optimizeCameras()
-        self.remove_by_criteria(
             Metashape.PointCloud.Filter.ReconstructionUncertainty,
             Filter.RECONSTRUCTION_UNCERTAINTY,
+            max_removed=self.FIFTY_PERCENT,
         )
         self._project.chunk.optimizeCameras()
         self.remove_by_criteria(
