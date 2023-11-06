@@ -296,6 +296,11 @@ class ImageProcessor:
             Filter.PROJECTION_ACCURACY,
         )
         self._project.chunk.optimizeCameras()
+        self.remove_by_criteria(
+            Metashape.PointCloud.Filter.ReprojectionError,
+            Filter.REPROJECTION_ERROR,
+        )
+        self._project.chunk.optimizeCameras()
         self._project.save()
 
     def build_dense_cloud(self, downscale: int) -> None:
