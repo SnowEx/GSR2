@@ -343,9 +343,9 @@ class ImageProcessor:
         Executes a three-level filter over the sparse point cloud to improve
         camera location accuracy. The cameras are optimized after each filter.
 
-        # TODO: describe each filter
-
-        Inspired by: https://code.usgs.gov/pcmsc/AgisoftAlignmentErrorReduction
+        Each filter is described in Over et al. (2021):
+            https://doi.org/10.3133/ofr20211039
+            https://code.usgs.gov/pcmsc/AgisoftAlignmentErrorReduction
         """
         self.remove_by_criteria(
             Metashape.PointCloud.Filter.ReconstructionUncertainty,
