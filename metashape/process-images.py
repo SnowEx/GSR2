@@ -69,7 +69,7 @@ class ImageProcessor:
         self.setup_application()
 
         self._project = self.open_or_create_new_project(
-            options.image_folder, options.image_type, options.marker_file
+            options.image_folder, options.image_type
         )
 
     @property
@@ -104,7 +104,7 @@ class ImageProcessor:
         app.cpu_enable = False
 
     def open_or_create_new_project(
-        self, image_folder: str, image_type: str, marker_file: str,
+        self, image_folder: str, image_type: str,
     ) -> Metashape.Document:
         """
         Create or open the project under given project path from script
@@ -114,11 +114,10 @@ class ImageProcessor:
 
         * Set the camera settings (See :py:meth:`.setup_camera`)
         * Add the images (See :py:meth:`.load_images`)
-        * Detect markers in images (See :py:meth:`.detect_and_scale_markers`)
+        * Detect markers in images
 
         :param image_folder: Image folder from script arguments
         :param image_type: Type of images to load
-        :param marker_file: Path to CSV marker file
         :return: The opened Metashape project
         """
         project = Metashape.Document()
@@ -133,8 +132,8 @@ class ImageProcessor:
 
             self._project = project
             self.load_images(image_folder, image_type)
-            self.detect_and_scale_markers(marker_file)
             self.setup_camera()
+            self._project.chunk.detectMarkers(tolerance=25)
             project.save()
 
         return project
@@ -192,15 +191,27 @@ class ImageProcessor:
             if marker.label == ImageProcessor.MARKER_STRING.substitute(id=3):
                 markers[2].reference.location = Metashape.Vector([0, 0, 0])
 
-    def add_scalebars(self, markers: list, marker_list: list) -> None:
+    def add_scalebars(self, marker_file: str) -> None:
         """
         Add scale bar to marker pairs that were successfully detected.
+        Each pair will create a scalebar with distance given by the
+        marker file.
 
-        :param markers: list - All detected markers
-        :param marker_list: list - Parsed marker list from user csv
+        Expected format in CSV file is:
+            marker_ID_from, marker_ID_to, marker_distance
+
+        Example: 1,2,0.33
+
+        :param marker_file: Path to CSV marker file
         """
+        # Read marker metadata from user given csv
+        with open(marker_file, 'r', newline='') as csvfile:
+            marker_list = list(csv.reader(csvfile, delimiter=','))
+
         # Transform to check for detection
-        marker_dict = {marker.label: marker for marker in markers}
+        marker_dict = {
+            marker.label: marker for marker in self._project.chunk.markers
+        }
 
         for marker_pair in marker_list:
             marker_1 = self.MARKER_STRING.substitute(id=marker_pair[0])
@@ -218,27 +229,7 @@ class ImageProcessor:
                 print(f'   {marker_1} to {marker_2}')
                 print('    NOT found in images')
 
-    def detect_and_scale_markers(self, marker_file: str) -> None:
-        """
-        Find the specified markers placed in scene and add scalebars.
-        Each pair is expected to have a fixed distance between them.
-
-        Expected format in CSV file is:
-            marker_ID_from, marker_ID_to, marker_distance
-
-        Example: 1,2,0.33
-
-        :param marker_file: Path to CSV marker file
-        """
-        self._project.chunk.detectMarkers(tolerance=25)
-
-        markers = self._project.chunk.markers
-
-        # Read marker metadata from user given csv
-        with open(marker_file, 'r', newline='') as csvfile:
-            marker_list = list(csv.reader(csvfile, delimiter=','))
-
-        self.add_scalebars(markers, marker_list)
+        self._project.save()
 
     def align_images(
         self, preselection_mode=Metashape.ReferencePreselectionMode
@@ -399,7 +390,9 @@ class ImageProcessor:
     def build_point_cloud(self, options: argparse.Namespace) -> None:
         """
         Wrapper function to run:
+            * Image alignment
             * Camera optimization
+            * Adding scalebars
             * Build sparse cloud
             * Build dense cloud
 
@@ -408,6 +401,7 @@ class ImageProcessor:
         """
         self.align_images(Metashape.ReferencePreselectionSequential)
         self.filter_sparse_cloud()
+        self.add_scalebars(options.marker_file)
         self.build_dense_cloud(options.dense_cloud_quality)
         self.filter_dense_cloud()
 
