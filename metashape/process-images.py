@@ -148,6 +148,9 @@ class ImageProcessor:
         self._project.chunk.camera_rotation_accuracy = Accuracy.CAMERA_ROTATION
         self._project.chunk.marker_location_accuracy = Accuracy.MARKERS
         self._project.chunk.scalebar_accuracy = Accuracy.SCALEBAR
+        self._project.chunk.marker_projection_accuracy = \
+            Accuracy.MARKER_PROJECTION
+        self._project.chunk.tiepoint_accuracy = Accuracy.TIEPOINT_ACCURACY
 
     def load_images(self, folder: str, image_type: str) -> None:
         """
