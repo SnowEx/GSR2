@@ -281,6 +281,7 @@ class ImageProcessor:
         self,
         point_filter: Metashape.PointCloud.Filter,
         threshold: float,
+        step_size: float,
         max_percent: float,
     ) -> float:
         """
@@ -290,6 +291,8 @@ class ImageProcessor:
 
         :param point_filter: Instance of Metashape.PointCloud.Filter
         :param threshold: Threshold value for the given filter
+        :param step_size: Value to increase the threshold when max_removed
+                          should be achieved.
         :param max_percent: int - Percent value to stay below
 
         :return: Filter threshold value to match needed maximum percentage
@@ -301,7 +304,7 @@ class ImageProcessor:
         percent_selected = selected_points / sparse_points
 
         while percent_selected > max_percent:
-            threshold += 0.25
+            threshold += step_size
             point_filter.selectPoints(threshold)
 
             selected_points = self.count_sparse_points()
@@ -312,6 +315,7 @@ class ImageProcessor:
     def remove_by_criteria(
         self, criteria: Metashape.PointCloud.Filter,
         threshold: float,
+        step_size: float = 0,
         max_removed: float = 0,
     ) -> None:
         """
@@ -319,6 +323,8 @@ class ImageProcessor:
 
         :param criteria: Child class from Metashape.PointCloud.Filter
         :param threshold: Threshold value for the given criteria
+        :param step_size: Value to increase the threshold when max_removed
+                          should be achieved.
         :param max_removed: Threshold for maximum percent of points removed
                             with this filter. Default: 0 (no maximum)
         """
@@ -327,7 +333,7 @@ class ImageProcessor:
 
         if max_removed > 0:
             threshold = self.threshold_for_percent(
-                point_cloud_filter, threshold, max_removed
+                point_cloud_filter, threshold, step_size, max_removed
             )
 
         point_cloud_filter.removePoints(threshold)
@@ -345,6 +351,7 @@ class ImageProcessor:
             Metashape.PointCloud.Filter.ReconstructionUncertainty,
             Filter.RECONSTRUCTION_UNCERTAINTY,
             max_removed=self.FIFTY_PERCENT,
+            step_size=Filter.RECONSTRUCTION_UNCERTAINTY_STEP,
         )
         self._project.chunk.optimizeCameras()
         self.remove_by_criteria(
