@@ -59,7 +59,7 @@ class ImageProcessor:
     TIEPOINT_LIMIT = 10_000
 
     # Percentage threshold for sparse point cloud filter
-    FIFTY_PERCENT = 50
+    FIFTY_PERCENT = 0.5
 
     # Distance in meters where images were taken.
     # Needs to be a string when set.
@@ -281,7 +281,7 @@ class ImageProcessor:
         self,
         point_filter: Metashape.PointCloud.Filter,
         threshold: float,
-        max_percent: int,
+        max_percent: float,
     ) -> float:
         """
         Calculate percentage of points selected via the filter and adjust the
@@ -298,21 +298,21 @@ class ImageProcessor:
 
         point_filter.selectPoints(threshold)
         selected_points = self.count_sparse_points()
-        percent_selected = round(selected_points / sparse_points)
+        percent_selected = selected_points / sparse_points
 
         while percent_selected > max_percent:
             threshold += 0.25
             point_filter.selectPoints(threshold)
 
             selected_points = self.count_sparse_points()
-            percent_selected = round(selected_points / sparse_points)
+            percent_selected = selected_points / sparse_points
 
         return threshold
 
     def remove_by_criteria(
         self, criteria: Metashape.PointCloud.Filter,
         threshold: float,
-        max_removed: int = 0,
+        max_removed: float = 0,
     ) -> None:
         """
         Wrapper function to execute a Metashape point cloud filter.
