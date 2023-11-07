@@ -61,6 +61,10 @@ class ImageProcessor:
     # Percentage threshold for sparse point cloud filter
     FIFTY_PERCENT = 50
 
+    # Distance in meters where images were taken.
+    # Needs to be a string when set.
+    CAPTURE_DISTANCE = '1'
+
     def __init__(self, options: argparse.Namespace):
         self._project_name = options.project_name
         # Location for Metashape outputs
@@ -151,6 +155,7 @@ class ImageProcessor:
         self._project.chunk.marker_projection_accuracy = \
             Accuracy.MARKER_PROJECTION
         self._project.chunk.tiepoint_accuracy = Accuracy.TIEPOINT_ACCURACY
+        self._project.chunk.meta['subject_distance'] = self.CAPTURE_DISTANCE
 
     def load_images(self, folder: str, image_type: str) -> None:
         """
