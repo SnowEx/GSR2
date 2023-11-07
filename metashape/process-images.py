@@ -251,11 +251,11 @@ class ImageProcessor:
         self._project.chunk.matchPhotos(
             downscale=ImageMatching.HIGHEST,
             generic_preselection=True,
-            reference_preselection=False,
-            reset_matches=True,
+            reference_preselection=True,
             reference_preselection_mode=preselection_mode,
             keypoint_limit=ImageProcessor.KEYPOINT_LIMIT,
             tiepoint_limit=ImageProcessor.TIEPOINT_LIMIT,
+            reset_matches=True,
         )
         self._project.chunk.alignCameras()
         self._project.chunk.optimizeCameras()
