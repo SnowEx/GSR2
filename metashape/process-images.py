@@ -270,7 +270,7 @@ class ImageProcessor:
         :param filtered: Boolean - Whether to only count selected points
         :return: Integer - Number of points
         """
-        sparse_points = self._project.chunk.point_cloud.points
+        sparse_points = self._project.chunk.tie_points.points
         return len(
             [
                 True for point in sparse_points
@@ -279,7 +279,7 @@ class ImageProcessor:
 
     def threshold_for_percent(
         self,
-        point_filter: Metashape.PointCloud.Filter,
+        point_filter: Metashape.TiePoints.Filter,
         threshold: float,
         step_size: float,
         max_percent: float,
@@ -289,7 +289,7 @@ class ImageProcessor:
         filter threshold value to stay below given maximum percent. This method
         incrementally increases the threshold value by 0.25.
 
-        :param point_filter: Instance of Metashape.PointCloud.Filter
+        :param point_filter: Instance of Metashape.TiePoints.Filter
         :param threshold: Threshold value for the given filter
         :param step_size: Value to increase the threshold when max_removed
                           should be achieved.
@@ -313,7 +313,7 @@ class ImageProcessor:
         return threshold
 
     def remove_by_criteria(
-        self, criteria: Metashape.PointCloud.Filter,
+        self, criteria: Metashape.TiePoints.Filter,
         threshold: float,
         step_size: float = 0,
         max_removed: float = 0,
@@ -321,14 +321,14 @@ class ImageProcessor:
         """
         Wrapper function to execute a Metashape point cloud filter.
 
-        :param criteria: Child class from Metashape.PointCloud.Filter
+        :param criteria: Child class from Metashape.TiePoints.Filter
         :param threshold: Threshold value for the given criteria
         :param step_size: Value to increase the threshold when max_removed
                           should be achieved.
         :param max_removed: Threshold for maximum percent of points removed
                             with this filter. Default: 0 (no maximum)
         """
-        point_cloud_filter = Metashape.PointCloud.Filter()
+        point_cloud_filter = Metashape.TiePoints.Filter()
         point_cloud_filter.init(self._project.chunk, criterion=criteria)
 
         if max_removed > 0:
@@ -348,19 +348,19 @@ class ImageProcessor:
             https://code.usgs.gov/pcmsc/AgisoftAlignmentErrorReduction
         """
         self.remove_by_criteria(
-            Metashape.PointCloud.Filter.ReconstructionUncertainty,
+            Metashape.TiePoints.Filter.ReconstructionUncertainty,
             Filter.RECONSTRUCTION_UNCERTAINTY,
             max_removed=self.FIFTY_PERCENT,
             step_size=Filter.RECONSTRUCTION_UNCERTAINTY_STEP,
         )
         self._project.chunk.optimizeCameras()
         self.remove_by_criteria(
-            Metashape.PointCloud.Filter.ProjectionAccuracy,
+            Metashape.TiePoints.Filter.ProjectionAccuracy,
             Filter.PROJECTION_ACCURACY,
         )
         self._project.chunk.optimizeCameras()
         self.remove_by_criteria(
-            Metashape.PointCloud.Filter.ReprojectionError,
+            Metashape.TiePoints.Filter.ReprojectionError,
             Filter.REPROJECTION_ERROR,
         )
         self._project.chunk.optimizeCameras()
@@ -376,7 +376,7 @@ class ImageProcessor:
             downscale=downscale,
             filter_mode=Metashape.MildFiltering,
         )
-        self._project.chunk.buildDenseCloud(
+        self._project.chunk.buildPointCloud(
             point_confidence=True,
         )
 
@@ -389,15 +389,15 @@ class ImageProcessor:
           * Decimate the point cloud to four points per millimeter
         """
         # Remove points with one depth map
-        point_cloud = self._project.chunk.dense_cloud
+        point_cloud = self._project.chunk.point_cloud
         point_cloud.setConfidenceFilter(0, Filter.DEPTH_MAP_MINIMUM)
         point_cloud.removePoints(self.ALL_VISIBLE_POINTS)
         point_cloud.resetFilters()
 
         # Decimate to four points per millimeter to speed up analysis
-        task = Metashape.Tasks.FilterDenseCloud()
+        task = Metashape.Tasks.FilterPointCloud()
         task.point_spacing = Filter.DENSE_CLOUD_POINT_SPACING
-        task.asset = point_cloud.key
+        task.point_cloud = point_cloud.key
         task.apply(self._project.chunk)
 
         self._project.save()
@@ -492,3 +492,4 @@ if __name__ == '__main__':
         image_processor.export()
     else:
         image_processor.build_point_cloud(arguments)
+
