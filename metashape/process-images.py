@@ -490,6 +490,12 @@ def argument_parser():
         action="store_true",
         help="Export the PDF report and LAZ point cloud"
     )
+    parser.add_argument(
+        '--export-only',
+        action="store_true",
+        help="Only run the export for the PDF report and LAZ point cloud. "
+             "NO processing will be performed."
+    )
 
     return parser
 
@@ -497,8 +503,9 @@ def argument_parser():
 if __name__ == '__main__':
     arguments = argument_parser().parse_args()
     image_processor = ImageProcessor(arguments)
-    if arguments.export:
+    if arguments.export_only:
         image_processor.export()
     else:
         image_processor.build_point_cloud(arguments)
-
+        if arguments.export:
+            image_processor.export()
