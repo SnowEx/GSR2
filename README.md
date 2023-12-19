@@ -23,6 +23,9 @@ not require an installed version with a license of Metashape.
     conda create -n gsr2 python
    ```
 2. Download the Metashape Python package from [their website](https://www.agisoft.com/downloads/installer/)
+   ```shell
+   pip install /path/to/downloaded/metashape.whl
+   ```
 3. Install into the conda environment
    ```shell
    conda activate gsr2
