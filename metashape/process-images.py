@@ -35,6 +35,7 @@ from image_matching import ImageMatching
 class ImageProcessor:
     PROJECT_TYPE = '.psx'
     EXPORT_LAZ = '.laz'
+    EXPORT_PDF = '.pdf'
 
     IMAGE_CHUNK_LABEL = 'Snowpit'
     IMAGE_FOLDER_GLOB = '**/*'
@@ -422,13 +423,21 @@ class ImageProcessor:
 
     def export(self) -> None:
         """
-        Export a project point cloud as .laz file
+        Export a project point cloud as .laz file along with the processing
+        report.
         """
         self._project.chunk.exportPoints(
             self._project_path.joinpath(
                 self._project_name + self.EXPORT_LAZ
             ).as_posix(),
             format=Metashape.PointsFormatLAZ
+        )
+        self._project.chunk.exportReport(
+            self._project_path.joinpath(
+                self._project_name + self.EXPORT_PDF
+            ).as_posix(),
+            title=self.project_name,
+            page_numbers=True,
         )
 
 
@@ -479,7 +488,7 @@ def argument_parser():
     parser.add_argument(
         '-exp', '--export',
         action="store_true",
-        help="Export the result in a .laz file"
+        help="Export the PDF report and LAZ point cloud"
     )
 
     return parser
