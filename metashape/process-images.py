@@ -78,15 +78,13 @@ class ImageProcessor:
         )
 
     @property
-    def project_name(self):
-        return self._project_name + self.PROJECT_TYPE
-
-    @property
     def project_path(self):
         """
         Base path where project will be saved or loaded from.
         """
-        return self._project_path.joinpath(self.project_name)
+        return self._project_path.joinpath(
+            self._project_name + self.PROJECT_TYPE
+        )
 
     def save_and_exit(self):
         """
@@ -436,7 +434,7 @@ class ImageProcessor:
             self._project_path.joinpath(
                 self._project_name + self.EXPORT_PDF
             ).as_posix(),
-            title=self.project_name,
+            title=self._project_name,
             page_numbers=True,
         )
 
