@@ -258,7 +258,6 @@ class ImageProcessor:
             reset_matches=True,
         )
         self._project.chunk.alignCameras()
-        self._project.chunk.optimizeCameras()
         self._project.save()
 
     def count_sparse_points(
