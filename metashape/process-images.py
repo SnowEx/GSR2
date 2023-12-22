@@ -236,6 +236,7 @@ class ImageProcessor:
                 print(f'   {marker_1} to {marker_2}')
                 print('    NOT found in images')
 
+        self._project.chunk.updateTransform()
         self._project.save()
 
     def align_images(
