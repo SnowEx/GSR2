@@ -56,7 +56,7 @@ class ImageProcessor:
 
     # Use a high keypoint limit and filter through the gradual selection in
     # a second step (See :py:meth:`.filter_sparse_cloud`)
-    KEYPOINT_LIMIT = 100_000
+    KEYPOINT_LIMIT = 50_000
     TIEPOINT_LIMIT = 10_000
 
     # Percentage threshold for sparse point cloud filter
