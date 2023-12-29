@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 module load singularity
-singularity exec --nv \
+singularity exec --nv --cleanenv \
   --bind /bsushare/hpmarshall-shared/jmeyer:/data \
   /cm/shared/apps/singularity/containers/agisoft_2.0.3.sif \
   metashape.sh -platform offscreen $@
