@@ -7,7 +7,7 @@ The initial imagery recording and processing is inspred by Meloche et al. (2021)
 with updates to recording setup.
 
 ## Local point cloud visualization
-See the [entwine](entwine.md) instructions on how to visualize points clouds 
+See the [entwine](docs/entwine.md) instructions on how to visualize points clouds 
 with a cloud optimized data format on your local computer.
 
 ## Local Development
