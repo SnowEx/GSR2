@@ -1,7 +1,9 @@
 # Ground Surface Roughness Reconstruction
 
 Process imagery taken during the SnowEx Alaska 2022 and 2023 fall campaign
-to reconstruct the snow pit ground surface roughness. 
+to reconstruct the snow pit ground surface roughness. The used ground control
+markers when capturing the images can be found under the [docs](docs/markers/README.md) 
+folder. 
 
 The initial imagery recording and processing is inspred by Meloche et al. (2021)
 with updates to recording setup.
