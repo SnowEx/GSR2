@@ -8,6 +8,41 @@ folder.
 The initial imagery recording and processing is inspred by Meloche et al. (2021)
 with updates to recording setup.
 
+## Processing script
+Central entry point to pass to Agisoft Metashape is the 
+[process-images.py](metashape/process-images.py) script. A sample call can be 
+found under the [RCS](RCS) folder. 
+
+Linux example usage:
+```shell
+metashape.sh -platform offscreen -r process-images __options__
+
+required options:
+  -pn/--project-name
+  -op/--output-path
+  -if/--image-folder
+  -mf/--marker-file
+
+all options:
+  -h, --help            show this help message and exit
+  -pn PROJECT_NAME, --project-name PROJECT_NAME
+                        Name of project.
+  -op OUTPUT_PATH, --output-path OUTPUT_PATH
+                        Output directory for the Metashape project.
+  -if IMAGE_FOLDER, --image-folder IMAGE_FOLDER
+                        Location of images relative to base-path.
+  -it IMAGE_TYPE, --image-type IMAGE_TYPE
+                        Type of images - default to .jpg
+  -mf MARKER_FILE, --marker-file MARKER_FILE
+                        Path to CSV file with marker distances
+  -dcq {1,2,4}, --dense-cloud-quality {1,2,4}
+                        Integer for dense point cloud quality. 
+                        Highest -> 1 (Default) High -> 2 Medium -> 4
+  -exp, --export        Export the PDF report and LAZ point cloud
+  --export-only         Only run the export for the PDF report and LAZ point cloud. 
+                        NO processing will be performed.
+```
+
 ## Local point cloud visualization
 See the [entwine](docs/entwine.md) instructions on how to visualize points clouds 
 with a cloud optimized data format on your local computer.
