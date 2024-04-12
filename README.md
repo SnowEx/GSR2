@@ -1,3 +1,6 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10967251.svg)](https://doi.org/10.5281/zenodo.10967251)
+
+
 # Ground Surface Roughness Reconstruction
 
 Process imagery taken during the SnowEx Alaska 2022 and 2023 fall campaign
